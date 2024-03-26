@@ -66,6 +66,7 @@ use function defined;
 
 final class Main extends PluginBase
 {
+    /** @var Closure(Block, ?Player): bool */
     private static Closure $canChangeBlockStatesClosure;
 
     protected function onLoad(): void
@@ -90,6 +91,9 @@ final class Main extends PluginBase
         });
     }
 
+    /**
+     * @param Closure(Block, ?Player): bool $closure
+     */
     public static function setCanChangeStatesClosure(Closure $closure): void
     {
         \pocketmine\utils\Utils::validateCallableSignature(fn(Block $block, ?Player $player): bool => true, $closure);
@@ -370,16 +374,6 @@ final class Main extends PluginBase
     public static function registerSpecialBlocks(array &$blocks): void
     {
         foreach ([
-                     BlockTypeNames::SMALL_AMETHYST_BUD,
-                     BlockTypeNames::MEDIUM_AMETHYST_BUD,
-                     BlockTypeNames::LARGE_AMETHYST_BUD,
-                     BlockTypeNames::AMETHYST_CLUSTER,
-                 ] as $id) {
-            if (Utils::removeIfPresent($id, $blocks)) {
-                BlockStateRegistration::AmethystAnyFacing($id);
-            }
-        }
-        foreach ([
                      BlockTypeNames::PISTON_ARM_COLLISION,
                      BlockTypeNames::STICKY_PISTON_ARM_COLLISION,
                  ] as $id) {
@@ -489,10 +483,6 @@ final class Main extends PluginBase
         if (Utils::removeIfPresent(BlockTypeNames::CHERRY_SAPLING, $blocks)) {
             BlockStateRegistration::CherrySapling();
         }
-        // chiseled_bookshelf BOOKS_STORED 0-63 DIRECTION
-        if (Utils::removeIfPresent(BlockTypeNames::CHISELED_BOOKSHELF, $blocks)) {
-            BlockStateRegistration::ChiseledBookshelf();
-        }
         // chain_command_block command_block repeating_command_block CONDITIONAL_BIT T/F FACING_DIRECTION
         foreach ([BlockTypeNames::COMMAND_BLOCK, BlockTypeNames::REPEATING_COMMAND_BLOCK, BlockTypeNames::CHAIN_COMMAND_BLOCK] as $id) {
             if (Utils::removeIfPresent($id, $blocks)) {
@@ -538,14 +528,6 @@ final class Main extends PluginBase
             if (Utils::removeIfPresent($id, $blocks)) {
                 BlockStateRegistration::Piston($id);
             }
-        }
-        // pitcher_crop GROWTH 0-4 UPPER_BLOCK_BIT T/F
-        if (Utils::removeIfPresent(BlockTypeNames::PITCHER_CROP, $blocks)) {
-            BlockStateRegistration::PitcherCrop();
-        }
-        // pitcher_plant UPPER_BLOCK_BIT T/F
-        if (Utils::removeIfPresent(BlockTypeNames::PITCHER_PLANT, $blocks)) {
-            BlockStateRegistration::PitcherPlant();
         }
         // pointed_dripstone DRIPSTONE_THICKNESS string HANGING T/F
         if (Utils::removeIfPresent(BlockTypeNames::POINTED_DRIPSTONE, $blocks)) {
@@ -593,13 +575,92 @@ final class Main extends PluginBase
                 BlockStateRegistration::SuspiciousFallable($id);
             }
         }
-        // torchflower_crop GROWTH 0-2
-        if (Utils::removeIfPresent(BlockTypeNames::TORCHFLOWER_CROP, $blocks)) {
-            BlockStateRegistration::TorchflowerCrop();
-        }
         // turtle_egg TURTLE_EGG_COUNT string CRACKED_STATE string
         if (Utils::removeIfPresent(BlockTypeNames::TURTLE_EGG, $blocks)) {
             BlockStateRegistration::TurtleEgg();
+        }
+        // copper bulb LIT POWERED_BIT
+        foreach ([
+                     BlockTypeNames::COPPER_BULB,
+                     BlockTypeNames::EXPOSED_COPPER_BULB,
+                     BlockTypeNames::OXIDIZED_COPPER_BULB,
+                     BlockTypeNames::WEATHERED_COPPER_BULB,
+                     BlockTypeNames::WAXED_COPPER_BULB,
+                     BlockTypeNames::WAXED_EXPOSED_COPPER_BULB,
+                     BlockTypeNames::WAXED_OXIDIZED_COPPER_BULB,
+                     BlockTypeNames::WAXED_WEATHERED_COPPER_BULB
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::CopperBulb($id);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::COPPER_DOOR,
+                     BlockTypeNames::EXPOSED_COPPER_DOOR,
+                     BlockTypeNames::OXIDIZED_COPPER_DOOR,
+                     BlockTypeNames::WEATHERED_COPPER_DOOR,
+                     BlockTypeNames::WAXED_COPPER_DOOR,
+                     BlockTypeNames::WAXED_EXPOSED_COPPER_DOOR,
+                     BlockTypeNames::WAXED_OXIDIZED_COPPER_DOOR,
+                     BlockTypeNames::WAXED_WEATHERED_COPPER_DOOR
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::door($id);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::COPPER_TRAPDOOR,
+                     BlockTypeNames::EXPOSED_COPPER_TRAPDOOR,
+                     BlockTypeNames::OXIDIZED_COPPER_TRAPDOOR,
+                     BlockTypeNames::WEATHERED_COPPER_TRAPDOOR,
+                     BlockTypeNames::WAXED_COPPER_TRAPDOOR,
+                     BlockTypeNames::WAXED_EXPOSED_COPPER_TRAPDOOR,
+                     BlockTypeNames::WAXED_OXIDIZED_COPPER_TRAPDOOR,
+                     BlockTypeNames::WAXED_WEATHERED_COPPER_TRAPDOOR
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::trapdoor($id);
+            }
+        }
+        // crafter CRAFTING TRIGGERED_BIT ORIENTATION
+        if (Utils::removeIfPresent(BlockTypeNames::CRAFTER, $blocks)) {
+            BlockStateRegistration::Crafter();
+        }
+        // can't register separately, either both or none
+        foreach ([
+                     BlockTypeNames::TUFF_SLAB => BlockTypeNames::TUFF_DOUBLE_SLAB,
+                     BlockTypeNames::TUFF_BRICK_SLAB => BlockTypeNames::TUFF_BRICK_DOUBLE_SLAB,
+                     BlockTypeNames::POLISHED_TUFF_SLAB => BlockTypeNames::POLISHED_TUFF_DOUBLE_SLAB,
+                 ] as $singleId => $doubleId) {
+            if (Utils::removeIfPresent($singleId, $blocks) && Utils::removeIfPresent($doubleId, $blocks)) {
+                BlockStateRegistration::slab($singleId, $doubleId);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::TUFF_STAIRS,
+                     BlockTypeNames::TUFF_BRICK_STAIRS,
+                     BlockTypeNames::POLISHED_TUFF_STAIRS
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::stairs($id);
+            }
+        }
+        foreach ([
+                     BlockTypeNames::TUFF_WALL,
+                     BlockTypeNames::TUFF_BRICK_WALL,
+                     BlockTypeNames::POLISHED_TUFF_WALL
+                 ] as $id) {
+            if (Utils::removeIfPresent($id, $blocks)) {
+                BlockStateRegistration::wall($id);
+            }
+        }
+        // trial spawner trial_spawner_state int 1
+        if (Utils::removeIfPresent(BlockTypeNames::TRIAL_SPAWNER, $blocks)) {
+            BlockStateRegistration::TrialSpawner();
+        }
+        // vault cardinal_direction vault_state
+        if (Utils::removeIfPresent(BlockTypeNames::VAULT, $blocks)) {
+            BlockStateRegistration::Vault();
         }
     }
 
@@ -663,19 +724,16 @@ final class Main extends PluginBase
             DummyItems::BAMBOO_SIGN()
         );
 
-        foreach ([
-                     BlockTypeNames::POWDER_SNOW => ItemTypeNames::POWDER_SNOW_BUCKET, // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/5964
-                     BlockTypeNames::PITCHER_CROP => ItemTypeNames::PITCHER_POD,
-                     BlockTypeNames::TORCHFLOWER_CROP => ItemTypeNames::TORCHFLOWER_SEEDS,
-                 ] as $blockId => $itemId) {
-            if (in_array($itemId, $items, true) && in_array($blockId, $blocks, true)) { //should not remove if either one is not present (register as normal item)
-                Utils::removeIfPresent($itemId, $items);
-                $block = StringToItemParser::getInstance()->parse($blockId)?->getBlock();
-                if ($block === null) {
-                    throw new AssumptionFailedError("Block $blockId not registered in StringToItemParser");
-                }
-                self::registerSimpleItem($itemId, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($itemId), $block), [$itemId]);
+        // obsolete when merged https://github.com/pmmp/PocketMine-MP/pull/5964
+        $blockId = BlockTypeNames::POWDER_SNOW;
+        $itemId = ItemTypeNames::POWDER_SNOW_BUCKET;
+        if (in_array($itemId, $items, true) && in_array($blockId, $blocks, true)) { //should not remove if either one is not present (register as normal item)
+            Utils::removeIfPresent($itemId, $items);
+            $block = StringToItemParser::getInstance()->parse($blockId)?->getBlock();
+            if ($block === null) {
+                throw new AssumptionFailedError("Block $blockId not registered in StringToItemParser");
             }
+            self::registerSimpleItem($itemId, new ItemPlacedAsBlock(new ItemIdentifier(ItemTypeIds::newId()), Utils::generateNameFromId($itemId), $block), [$itemId]);
         }
     }
 
@@ -700,11 +758,11 @@ final class Main extends PluginBase
             );
             StringToItemParser::getInstance()->register($id, fn() => clone $item);
             // For some reason it disappears from client-side creative inventory if I do registerBlocks() first... why Mojang...?
-            foreach (PotionType::getAll() as $type) {
+            foreach (PotionType::cases() as $type) {
                 $potion = (clone $item)->setType($type);
                 CreativeInventory::getInstance()->add($potion);
                 $name = explode(':', $id);
-                StringToItemParser::getInstance()->register($name[0] . ':' . $type->name() . '_' . $name[1], fn() => clone $potion);
+                StringToItemParser::getInstance()->register($name[0] . ':' . $type->name . '_' . $name[1], fn() => clone $potion);
             }
         }
         // bare minimum code needed for non-functional item adapted from https://github.com/pmmp/PocketMine-MP/pull/5232
@@ -721,11 +779,11 @@ final class Main extends PluginBase
                 fn(GoatHorn $item) => GoatHornTypeIdMap::getInstance()->toId($item->getType())
             );
             StringToItemParser::getInstance()->register($id, fn() => clone $item);
-            foreach (GoatHornType::getAll() as $type) {
+            foreach (GoatHornType::cases() as $type) {
                 $horn = (clone $item)->setType($type);
                 CreativeInventory::getInstance()->add($horn);
                 $name = explode(':', $id);
-                StringToItemParser::getInstance()->register($name[0] . ':' . $type->name() . '_' . $name[1], fn() => clone $horn);
+                StringToItemParser::getInstance()->register($name[0] . ':' . $type->name . '_' . $name[1], fn() => clone $horn);
             }
         }
         // im too lazy to list all the items with compound tag data, easier to just reload ;P
@@ -847,9 +905,9 @@ final class Main extends PluginBase
             TileNames::BRUSHABLE_BLOCK => [BlockTypeNames::SUSPICIOUS_GRAVEL, BlockTypeNames::SUSPICIOUS_SAND],
             TileNames::CALIBRATED_SCULK_SENSOR => [BlockTypeNames::CALIBRATED_SCULK_SENSOR],
             TileNames::CAMPFIRE => [BlockTypeNames::CAMPFIRE, BlockTypeNames::SOUL_CAMPFIRE],
-            TileNames::CHISELED_BOOKSHELF => [BlockTypeNames::CHISELED_BOOKSHELF],
             TileNames::CONDUIT => [BlockTypeNames::CONDUIT], // generic block registration, tile not important, activation is client-side, Active Byte 0 Target Long -1 isMovable 1
             TileNames::COMMAND_BLOCK => [BlockTypeNames::COMMAND_BLOCK, BlockTypeNames::CHAIN_COMMAND_BLOCK, BlockTypeNames::REPEATING_COMMAND_BLOCK],
+            TileNames::CRAFTER => [BlockTypeNames::CRAFTER],
             TileNames::DECORATED_POT => [BlockTypeNames::DECORATED_POT],
             TileNames::DISPENSER => [BlockTypeNames::DISPENSER],
             TileNames::DROPPER => [BlockTypeNames::DROPPER],
@@ -880,6 +938,8 @@ final class Main extends PluginBase
             TileNames::SCULK_SHRIEKER => [BlockTypeNames::SCULK_SHRIEKER],
             TileNames::SCULK_CATALYST => [BlockTypeNames::SCULK_CATALYST],
             TileNames::STRUCTURE_BLOCK => [BlockTypeNames::STRUCTURE_BLOCK],
+            TileNames::TRIAL_SPAWNER => [BlockTypeNames::TRIAL_SPAWNER],
+            TileNames::VAULT => [BlockTypeNames::VAULT]
         ];
         $registeredTiles = ReflectionHelper::TileFactoryRegisteredTileIds();
         foreach ($tiles as $name => $blockNames) {

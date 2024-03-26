@@ -3,8 +3,6 @@
 namespace diamondgold\DummyItemsBlocks\block;
 
 use pocketmine\block\Block;
-use pocketmine\block\BlockIdentifier;
-use pocketmine\block\BlockTypeInfo;
 use pocketmine\block\Transparent;
 use pocketmine\block\utils\BellAttachmentType;
 use pocketmine\block\utils\HorizontalFacingTrait;
@@ -22,13 +20,7 @@ class Grindstone extends Transparent
     // copied from Bell
     use HorizontalFacingTrait;
 
-    private BellAttachmentType $attachmentType;
-
-    public function __construct(BlockIdentifier $idInfo, string $name, BlockTypeInfo $typeInfo)
-    {
-        $this->attachmentType = BellAttachmentType::FLOOR();
-        parent::__construct($idInfo, $name, $typeInfo);
-    }
+    private BellAttachmentType $attachmentType = BellAttachmentType::FLOOR;
 
     protected function describeBlockOnlyState(RuntimeDataDescriber $w): void
     {
@@ -38,12 +30,12 @@ class Grindstone extends Transparent
 
     protected function recalculateCollisionBoxes(): array
     {
-        if ($this->attachmentType->equals(BellAttachmentType::FLOOR())) {
+        if ($this->attachmentType === BellAttachmentType::FLOOR) {
             return [
                 AxisAlignedBB::one()->squash(Facing::axis($this->facing), 1 / 4)->trim(Facing::UP, 3 / 16)
             ];
         }
-        if ($this->attachmentType->equals(BellAttachmentType::CEILING())) {
+        if ($this->attachmentType === BellAttachmentType::CEILING) {
             return [
                 AxisAlignedBB::one()->contract(1 / 4, 0, 1 / 4)->trim(Facing::DOWN, 1 / 4)
             ];
@@ -55,7 +47,7 @@ class Grindstone extends Transparent
             ->trim(Facing::DOWN, 1 / 4);
 
         return [
-            $this->attachmentType->equals(BellAttachmentType::ONE_WALL()) ? $box->trim($this->facing, 3 / 16) : $box
+            $this->attachmentType === BellAttachmentType::ONE_WALL ? $box->trim($this->facing, 3 / 16) : $box
         ];
     }
 
@@ -78,7 +70,7 @@ class Grindstone extends Transparent
 
     private function canBeSupportedBy(Block $block, int $face): bool
     {
-        return !$block->getSupportType($face)->equals(SupportType::NONE());
+        return $block->getSupportType($face) !== SupportType::NONE;
     }
 
     public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool
@@ -90,25 +82,19 @@ class Grindstone extends Transparent
             if ($player !== null) {
                 $this->setFacing(Facing::opposite($player->getHorizontalFacing()));
             }
-            $this->setAttachmentType(BellAttachmentType::FLOOR());
+            $this->setAttachmentType(BellAttachmentType::FLOOR);
         } elseif ($face === Facing::DOWN) {
             if (!$this->canBeSupportedBy($tx->fetchBlock($this->position->up()), Facing::DOWN)) {
                 return false;
             }
-            $this->setAttachmentType(BellAttachmentType::CEILING());
+            $this->setAttachmentType(BellAttachmentType::CEILING);
         } else {
             $this->setFacing($face);
             if ($this->canBeSupportedBy($tx->fetchBlock($this->position->getSide(Facing::opposite($face))), $face)) {
-                $this->setAttachmentType(BellAttachmentType::ONE_WALL());
+                $this->setAttachmentType(BellAttachmentType::ONE_WALL);
             } else {
                 return false;
             }
-            /*
-            // doesn't work
-            if ($this->canBeSupportedBy($tx->fetchBlock($this->position->getSide($face)), Facing::opposite($face))) {
-                $this->setAttachmentType(BellAttachmentType::TWO_WALLS());
-            }
-            */
         }
         return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
     }

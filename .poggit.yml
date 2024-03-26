@@ -8,4 +8,5 @@ projects:
     icon: icon.gif
     lint:
       phpstan: false
+      syntaxError: false
 ...

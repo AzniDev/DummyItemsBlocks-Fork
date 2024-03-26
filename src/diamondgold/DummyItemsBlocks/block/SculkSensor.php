@@ -38,7 +38,7 @@ class SculkSensor extends Transparent
 
     protected function describeBlockOnlyState(RuntimeDataDescriber $w): void
     {
-        $w->boundedInt(2, 0, 2, $this->phase);
+        $w->boundedIntAuto(0, 2, $this->phase);
     }
 
     public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []): bool
@@ -56,5 +56,10 @@ class SculkSensor extends Transparent
             ->setTag(TileNbtTagNames::VibrationListener_selector, CompoundTag::create())
         );
         $this->setTagIfNotExist($tag, TileNbtTagNames::isMovable, new ByteTag(1));
+    }
+
+    public function getLightLevel(): int
+    {
+        return 1;
     }
 }

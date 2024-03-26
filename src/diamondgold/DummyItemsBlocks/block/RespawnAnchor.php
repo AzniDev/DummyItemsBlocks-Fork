@@ -16,7 +16,7 @@ class RespawnAnchor extends Opaque
 
     protected function describeBlockOnlyState(RuntimeDataDescriber $w): void
     {
-        $w->boundedInt(3, 0, 4, $this->charges);
+        $w->boundedIntAuto(0, 4, $this->charges);
     }
 
     public function getCharges(): int
@@ -38,4 +38,8 @@ class RespawnAnchor extends Opaque
         return true;
     }
 
+    public function getLightLevel(): int
+    {
+        return $this->charges > 0 ? ($this->charges > 1 ? 3 + ($this->charges - 1) * 4 : 3) : 0;
+    }
 }
